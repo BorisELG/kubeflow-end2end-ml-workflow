@@ -1,0 +1,90 @@
+apiVersion: "kubeflow.org/v1alpha3"
+kind: Experiment
+metadata:
+  namespace: <SET_NAMESPACE>
+  labels:
+    controller-tools.k8s.io: "1.0"
+  name: fashion-mnist-experiment-distributed-1
+spec:
+  parallelTrialCount: 3
+  maxTrialCount: 6
+  maxFailedTrialCount: 3
+  objective:
+    type: maximize
+    goal: 0.9
+    objectiveMetricName: val_accuracy
+    additionalMetricNames:
+      - loss
+      - accuracy
+  metricsCollectorSpec:
+    collector:
+      kind: StdOut
+  algorithm:
+    algorithmName: random
+  parameters:
+    - name: --tf-learning-rate
+      parameterType: double
+      feasibleSpace:
+        min: "0.001"
+        max: "0.008"
+    # samples
+    # - name: --num-layers
+    #   parameterType: int
+    #   feasibleSpace:
+    #     min: "2"
+    #     max: "5"
+    # - name: --optimizer
+    #   parameterType: categorical
+    #   feasibleSpace:
+    #     list:
+    #     - sgd
+    #     - adam
+    #     - ftrl
+  trialTemplate:
+    goTemplate:
+        rawTemplate: |-
+          apiVersion: kubeflow.org/v1
+          kind: TFJob
+          metadata:
+            generateName: tfjob
+            name: {{.Trial}}
+            namespace: {{.NameSpace}}
+          spec:
+            tfReplicaSpecs:
+              Chief:
+                replicas: 1
+                restartPolicy: OnFailure
+                template:
+                  spec:
+                    containers:
+                    - name: tensorflow
+                      image: <SET_IMAGE_NAME>
+                      imagePullPolicy: Always
+                      command:
+                      - python
+                      - /opt/model.py
+                      - --tf-mode=local
+                      {{- with .HyperParameters}}
+                      {{- range .}}
+                      - "{{.Name}}={{.Value}}"
+                      {{- end}}
+                      {{- end}}
+
+              Worker:
+                replicas: 2
+                restartPolicy: OnFailure
+                template:
+                  spec:
+                    containers:
+                    - name: tensorflow
+                      image: <SET_IMAGE_NAME>
+                      imagePullPolicy: Always
+                      command:
+                      - python
+                      - /opt/model.py
+                      - --tf-mode=local
+                      {{- with .HyperParameters}}
+                      {{- range .}}
+                      - "{{.Name}}={{.Value}}"
+                      {{- end}}
+                      {{- end}}

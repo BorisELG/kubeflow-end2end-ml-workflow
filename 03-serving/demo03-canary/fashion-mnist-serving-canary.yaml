@@ -1,0 +1,38 @@
+apiVersion: serving.kubeflow.org/v1alpha2
+kind: InferenceService
+metadata:
+  labels:
+    controller-tools.k8s.io: "1.0"
+  name: fashion-mnist-canary
+  namespace: kubeflow
+spec:
+  default:
+    predictor:
+      minReplicas: 1
+      serviceAccountName: kf-user
+      tensorflow:
+        storageUri: "gs://kubeflow-ps-learn-fashion-mnist-tfjob/export"
+    transformer:
+      serviceAccountName: kf-user
+      minReplicas: 1
+      custom:
+        container:
+          image: gcr.io/kubeflow-ps-learn/fashion-mnist-processing:latest
+          name: user-container
+          imagePullPolicy: Always
+  canaryTrafficPercent: 50 # % of traffic is sent to canary model
+  canary:
+    predictor:
+      minReplicas: 1
+      serviceAccountName: kf-user
+      tensorflow:
+        storageUri: "gs://kubeflow-ps-learn-fashion-mnist-tfjob/export"
+    transformer:
+      serviceAccountName: kf-user
+      minReplicas: 1
+      custom:
+        container:
+          image: gcr.io/kubeflow-ps-learn/fashion-mnist-processing:latest
+          name: user-container
+          imagePullPolicy: Always
+        

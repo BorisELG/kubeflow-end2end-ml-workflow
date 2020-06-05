@@ -1,0 +1,62 @@
+apiVersion: kubeflow.org/v1
+kind: TFJob
+metadata:
+  generateName: tfjob
+  name: fashion-mnist-job-1
+  namespace: kubeflow
+spec:
+  tfReplicaSpecs:
+    Chief:
+      replicas: 1
+      restartPolicy: OnFailure
+      template:
+        spec:
+          containers:
+          - name: tensorflow
+            image: <SET_IMAGE>
+            command:
+            - python
+            - /opt/model.py
+            - --tf-export-dir=<SET_GCS_PATH>
+            - --tf-mode=gcs
+            - --tf-train-steps=3
+            - --tf-learning-rate=0.001
+            env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: "/secret/gcp-credentials/user-gcp-sa.json"
+            volumeMounts:
+            - name: sa
+              mountPath: "/secret/gcp-credentials"
+              readOnly: true
+          volumes:
+          - name: sa
+            secret:
+              secretName: user-gcp-sa
+    
+
+    Worker:
+      replicas: 2
+      restartPolicy: OnFailure
+      template:
+        spec:
+          containers:
+          - name: tensorflow
+            image: <SET_IMAGE>
+            command:
+            - python
+            - /opt/model.py
+            - --tf-export-dir=<SET_GCS_PATH>
+            - --tf-mode=gcs
+            - --tf-train-steps=3
+            - --tf-learning-rate=0.001
+            env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: "/secret/gcp-credentials/user-gcp-sa.json"
+            volumeMounts:
+            - name: sa
+              mountPath: "/secret/gcp-credentials"
+              readOnly: true
+          volumes:
+          - name: sa
+            secret:
+              secretName: user-gcp-sa

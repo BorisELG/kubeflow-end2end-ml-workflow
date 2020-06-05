@@ -1,0 +1,22 @@
+apiVersion: serving.kubeflow.org/v1alpha2
+kind: InferenceService
+metadata:
+  labels:
+    controller-tools.k8s.io: "1.0"
+  name: fashion-mnist-processor
+  namespace: kubeflow
+spec:
+  default:
+    predictor:
+      minReplicas: 1
+      serviceAccountName: kf-user
+      tensorflow:
+        storageUri: "gs://kubeflow-ps-learn-fashion-mnist-tfjob/export"
+    transformer:
+      serviceAccountName: kf-user
+      minReplicas: 1
+      custom:
+        container:
+          image: gcr.io/kubeflow-ps-learn/fashion-mnist-processing:latest
+          name: user-container
+          imagePullPolicy: Always
