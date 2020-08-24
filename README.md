@@ -6,8 +6,7 @@ It is a template that can be used to any end-to-end machine learning workflow wi
 
 This project exists thanks to :
 
-https://www.kubeflow.org/docs/
-https://www.pluralsight.com/courses/building-end-to-end-machine-learning-workflows-kubeflow
-https://www.youtube.com/watch?v=sRQECN7LsbI
+- https://www.kubeflow.org/docs/
+- https://www.pluralsight.com/courses/building-end-to-end-machine-learning-workflows-kubeflow
 
 
